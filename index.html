@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Snake Pro - Ultimate Edition</title>
+    <!-- Font Awesome & Google Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <!-- File CSS liên kết -->
+    <link rel="stylesheet" href="ha.css">
+</head>
+<body>
+
+    <div class="game-wrapper">
+        <!-- Header Thanh Trạng Thái Top -->
+        <header class="game-header">
+            <div class="logo" id="btn-home-logo" title="Về Menu chính">
+                <i class="fa-solid fa-staff-snake"></i>
+                <span>SNAKE <small>PRO</small></span>
+            </div>
+            <div class="scoreboard">
+                <div class="score-box">
+                    <span class="label">ĐIỂM</span>
+                    <span id="current-score" class="value">0000</span>
+                </div>
+                <div class="score-box highlight">
+                    <span class="label">KỶ LỤC</span>
+                    <span id="high-score" class="value">0000</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Thanh thông tin chế độ chơi và combo -->
+        <div class="stats-bar">
+            <div class="stat-item">
+                <i class="fa-solid fa-gamepad"></i>
+                <span>Chế độ: <strong id="mode-display">Cổ điển</strong></span>
+            </div>
+            <div class="stat-item">
+                <i class="fa-solid fa-bolt"></i>
+                <span>Combo: <strong id="combo-display">x1</strong></span>
+            </div>
+        </div>
+
+        <!-- Khung Canvas chứa màn hình Game & Các Overlay Menu -->
+        <main class="canvas-container">
+            <canvas id="gameCanvas"></canvas>
+
+            <!-- 1. MÀN HÌNH MENU CHÍNH / GAME OVER / PAUSE -->
+            <div id="game-overlay" class="overlay active">
+                <div class="overlay-content">
+                    <h1 id="overlay-title">SNAKE PRO</h1>
+                    <p id="overlay-subtitle">Hãy chọn chế độ chơi và sẵn sàng!</p>
+                    
+                    <!-- Bảng thông số hiển thị khi thua -->
+                    <div id="final-stats" class="final-stats hidden">
+                        <div class="stat-card">
+                            <span class="stat-title">Điểm số</span>
+                            <span id="final-score" class="stat-val">0</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-title">Thời gian</span>
+                            <span id="final-time" class="stat-val">00:00</span>
+                        </div>
+                    </div>
+
+                    <!-- Nút bấm Menu Chính -->
+                    <div id="main-menu-actions" class="menu-actions">
+                        <button id="btn-play-now" class="btn btn-primary btn-large">
+                            <i class="fa-solid fa-play"></i> BẮT ĐẦU CHƠI
+                        </button>
+                        <button id="btn-open-modes" class="btn btn-secondary">
+                            <i class="fa-solid fa-list-check"></i> CHỌN CHẾ ĐỘ CHƠI
+                        </button>
+                        <button id="btn-open-settings" class="btn btn-secondary">
+                            <i class="fa-solid fa-gear"></i> CÀI ĐẶT
+                        </button>
+                    </div>
+
+                    <!-- Nút bấm khi đang Tạm dừng / Thua trận -->
+                    <div id="ingame-menu-actions" class="menu-actions hidden">
+                        <button id="btn-resume" class="btn btn-primary">
+                            <i class="fa-solid fa-play"></i> TIẾP TỤC
+                        </button>
+                        <button id="btn-restart" class="btn btn-secondary">
+                            <i class="fa-solid fa-rotate-right"></i> CHƠI LẠI
+                        </button>
+                        <button id="btn-back-main-menu" class="btn btn-secondary">
+                            <i class="fa-solid fa-house"></i> MENU CHÍNH
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. MODAL MENU CHỌN CHẾ ĐỘ CHƠI -->
+            <div id="modes-modal" class="modal hidden">
+                <div class="modal-content">
+                    <h2><i class="fa-solid fa-gamepad"></i> CHẾ ĐỘ CHƠI</h2>
+                    <div class="modes-grid">
+                        <div class="mode-card active" data-mode="CLASSIC">
+                            <i class="fa-solid fa-circle-dot"></i>
+                            <div>
+                                <strong>Cổ điển (Classic)</strong>
+                                <p>Tốc độ chuẩn, ăn mồi dài ra. Đụng tường hoặc thân là thua.</p>
+                            </div>
+                        </div>
+                        <div class="mode-card" data-mode="SPEED">
+                            <i class="fa-solid fa-gauge-high"></i>
+                            <div>
+                                <strong>Tốc độ (Speed Surge)</strong>
+                                <p>Rắn di chuyển cực nhanh. Ăn mồi tăng tốc thêm!</p>
+                            </div>
+                        </div>
+                        <div class="mode-card" data-mode="SURVIVAL">
+                            <i class="fa-solid fa-skull"></i>
+                            <div>
+                                <strong>Sinh tồn (Survival)</strong>
+                                <p>Máu tụt liên tục theo thời gian. Phải liên tục ăn mồi để nạp máu.</p>
+                            </div>
+                        </div>
+                        <div class="mode-card" data-mode="OBSTACLE">
+                            <i class="fa-solid fa-cubes"></i>
+                            <div>
+                                <strong>Chướng ngại vật</strong>
+                                <p>Sân đấu xuất hiện các khối đá chướng ngại vật ngẫu nhiên.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="btn-close-modes" class="btn btn-primary full-width">XÁC NHẬN CHỌN</button>
+                </div>
+            </div>
+
+            <!-- 3. MODAL MENU CÀI ĐẶT -->
+            <div id="settings-modal" class="modal hidden">
+                <div class="modal-content">
+                    <h2><i class="fa-solid fa-gear"></i> CÀI ĐẶT GAME</h2>
+                    
+                    <div class="setting-row">
+                        <span>Âm thanh (SFX)</span>
+                        <label class="switch">
+                            <input type="checkbox" id="toggle-sound" checked>
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+
+                    <div class="setting-row">
+                        <span>Xuyên tường (Wrap Wall)</span>
+                        <label class="switch">
+                            <input type="checkbox" id="toggle-wall">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+
+                    <div class="setting-row">
+                        <span>Cảm ứng Vuốt (Mobile)</span>
+                        <label class="switch">
+                            <input type="checkbox" id="toggle-swipe" checked>
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+
+                    <button id="btn-close-settings" class="btn btn-secondary full-width">ĐÓNG</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Nút điều khiển Virtual D-Pad cho Mobile -->
+        <div class="mobile-controls">
+            <div class="dpad">
+                <button class="dpad-btn up" id="btn-up" data-dir="UP"><i class="fa-solid fa-chevron-up"></i></button>
+                <button class="dpad-btn left" id="btn-left" data-dir="LEFT"><i class="fa-solid fa-chevron-left"></i></button>
+                <button class="dpad-btn center" id="btn-pause-mobile"><i class="fa-solid fa-pause"></i></button>
+                <button class="dpad-btn right" id="btn-right" data-dir="RIGHT"><i class="fa-solid fa-chevron-right"></i></button>
+                <button class="dpad-btn down" id="btn-down" data-dir="DOWN"><i class="fa-solid fa-chevron-down"></i></button>
+            </div>
+        </div>
+
+        <!-- Chân trang -->
+        <footer class="game-footer">
+            <p>Hỗ trợ Phím Mũi Tên / WASD trên PC & Touch / D-Pad trên Mobile</p>
+        </footer>
+    </div>
+
+    <!-- File JavaScript liên kết -->
+    <script src="ha.js"></script>
+</body>
+</html>
